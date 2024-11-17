@@ -40,7 +40,7 @@ resource "aws_subnet" "tf_public_subnet" {
 
 # Subnet privada
 resource "aws_subnet" "tf_private_subnet" {
-  count             = 1
+  count             = 2
   vpc_id            = aws_vpc.tf_vpc.id
   cidr_block        = element(["10.0.1.0/24", "10.0.2.0/24"], count.index)
   availability_zone = element([var.aws_zone_1, var.aws_zone_2], count.index)
