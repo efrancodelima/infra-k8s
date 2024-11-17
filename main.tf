@@ -5,8 +5,8 @@ variable "aws_region" {
 }
 
 variable "aws_zone_1" {
-  description = "The AWS availability
-  zone" type = string
+  description = "The AWS availability zone"
+  type = string
 }
 
 # Define o provedor e a região
