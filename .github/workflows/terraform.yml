@@ -38,13 +38,7 @@ jobs:
 
       # Coloquei um timeout de 20 minutos nessa etapa
       - name: Terraform Apply
+        run: terraform apply -auto-approve
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          timeout 1200s terraform apply -auto-approve 
-          if [ $? -ne 0 ]; then 
-            echo "Terraform apply falhou ou foi interrompido." 
-            cat terraform.tfstate
-            exit 1 
-          fi
