@@ -20,7 +20,6 @@ provider "aws" {
 }
 
 # Define a VPC
-# Para um cluster AWS simples, 1 VPC é suficiente
 resource "aws_vpc" "tf_vpc" {
   cidr_block = "10.0.0.0/16"
 
@@ -28,30 +27,26 @@ resource "aws_vpc" "tf_vpc" {
 }
 
 # Define as subnets dentro da VPC
-# Para um cluster AWS simples, 2 subnets públicas e 2 privadas é suficiente
-# Coloquei somente 1 availability_zone em cada subnete
-# para não duplicar recursos e não encarecer os custos (caso haja algum)
-
 # Subnet pública
 resource "aws_subnet" "tf_public_subnet" {
-  count             = 1
+  count             = 2
   vpc_id            = aws_vpc.tf_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = var.aws_zone_1
+  cidr_block        = element(["10.0.1.0/24", "10.0.2.0/24"], count.index)
+  availability_zone = element([var.aws_zone_1, var.aws_zone_2], count.index)
   map_public_ip_on_launch = true
 
-  tags = { Name = "aws-public-subnet" }
+  tags = { Name = "aws-public-subnet-${count.index}" }
 }
 
 # Subnet privada
 resource "aws_subnet" "tf_private_subnet" {
   count             = 1
   vpc_id            = aws_vpc.tf_vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = var.aws_zone_1
+  cidr_block        = element(["10.0.1.0/24", "10.0.2.0/24"], count.index)
+  availability_zone = element([var.aws_zone_1, var.aws_zone_2], count.index)
   map_public_ip_on_launch = false
 
-  tags = { Name = "aws-private-subnet" }
+  tags = { Name = "aws-private-subnet-${count.index}" }
 }
 
 # Define o cluster
@@ -62,7 +57,9 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
   vpc_config {
     subnet_ids = [
       aws_subnet.tf_public_subnet[0].id,
-      aws_subnet.tf_private_subnet[0].id
+      aws_subnet.tf_public_subnet[1].id,
+      aws_subnet.tf_private_subnet[0].id,
+      aws_subnet.tf_private_subnet[1].id
     ]
   }
 

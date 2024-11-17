@@ -36,22 +36,15 @@ jobs:
             -var="aws_zone_1=${{ secrets.AWS_ZONE_1 }}" \
             -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}" -out=tfplan
 
+      # Coloquei um timeout de 20 minutos nessa etapa
       - name: Terraform Apply
-        continue-on-error: true
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          set -o errexit 
-            {
-              terraform apply -auto-approve
-            } || {
-              echo "Terraform apply falhou."
-              exit 1
-            }
-
-      - name: Output Terraform Error Log
-        if: failure()
-        run: |
-          echo "Falha ao criar o cluster"
-          cat terraform.tfstate
+          timeout 1200s terraform apply -auto-approve 
+          if [ $? -ne 0 ]; then 
+            echo "Terraform apply falhou ou foi interrompido." 
+            cat terraform.tfstate
+            exit 1 
+          fi
