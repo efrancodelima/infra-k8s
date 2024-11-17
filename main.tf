@@ -1,6 +1,17 @@
+# Recebe as variáveis do action
+variable "aws_region" {
+  description = "The AWS region"
+  type = string
+}
+
+variable "aws_zone_1" {
+  description = "The AWS availability
+  zone" type = string
+}
+
 # Define o provedor e a região
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 # Define a VPC
@@ -21,7 +32,7 @@ resource "aws_subnet" "tf_public_subnet" {
   count             = 1
   vpc_id            = aws_vpc.tf_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = var.aws_zone_1
   map_public_ip_on_launch = true
 
   tags = { Name = "aws-public-subnet" }
@@ -32,7 +43,7 @@ resource "aws_subnet" "tf_private_subnet" {
   count             = 1
   vpc_id            = aws_vpc.tf_vpc.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1a"
+  availability_zone = var.aws_zone_1
   map_public_ip_on_launch = false
 
   tags = { Name = "aws-private-subnet" }
@@ -55,7 +66,7 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
   ]
 }
 
-# Define a role para usada no cluster
+# Define a role usada no cluster
 resource "aws_iam_role" "eks_cluster" {
   name = "eks-cluster-role"
 
@@ -76,6 +87,7 @@ resource "aws_iam_role" "eks_cluster" {
 EOF
 }
 
+# Atribui os policies à role usada no cluster
 resource "aws_iam_role_policy_attachment" "eks_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.eks_cluster.name
