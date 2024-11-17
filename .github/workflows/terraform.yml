@@ -37,6 +37,7 @@ jobs:
           -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}" -out=tfplan
 
       - name: Terraform Imports
+        continue-on-error: true
         run: |
           terraform import \
           -var="aws_region=${{ secrets.AWS_REGION }}" \
