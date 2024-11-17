@@ -11,7 +11,7 @@ jobs:
     environment: producao
 
     env:
-      VARIABLES: -var="aws_region=${{ secrets.AWS_REGION }}" -var="aws_zone_1=${{ secrets.AWS_ZONE_1 }}" -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}" \
+      VARIABLES: -var="aws_region=${{ secrets.AWS_REGION }}" -var="aws_zone_1=${{ secrets.AWS_ZONE_1 }}" -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}"
 
     steps:
       - name: Checkout code
