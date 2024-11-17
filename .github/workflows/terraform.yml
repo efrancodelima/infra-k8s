@@ -9,6 +9,11 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: producao
+    env:
+      VARIAVEIS: |
+        -var=\"aws_region=${{ secrets.AWS_REGION }}\" \
+        -var=\"aws_zone_1=${{ secrets.AWS_ZONE_1 }}\" \
+        -var=\"aws_zone_2=${{ secrets.AWS_ZONE_2 }}\"
 
     steps:
       - name: Checkout code
@@ -36,13 +41,14 @@ jobs:
           -var="aws_zone_1=${{ secrets.AWS_ZONE_1 }}" \
           -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}" -out=tfplan
 
-      - name: Terraform Import Role
+      - name: Terraform Imports
         run: |
           terraform import \
           -var="aws_region=${{ secrets.AWS_REGION }}" \
           -var="aws_zone_1=${{ secrets.AWS_ZONE_1 }}" \
           -var="aws_zone_2=${{ secrets.AWS_ZONE_2 }}" \
           aws_iam_role.eks_cluster eks-cluster-role
+          terraform import $VARIAVEIS aws_eks_cluster.tf_eks_cluster aws-eks-cluster
 
       - name: Terraform Apply
         env:
