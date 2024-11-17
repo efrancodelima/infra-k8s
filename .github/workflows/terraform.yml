@@ -38,6 +38,9 @@ jobs:
       - name: Terraform Plan
         run: terraform plan ${VARIABLES} -out=tfplan
 
+      - name: Terraform Import Role
+        run: terraform import ${VARIABLES} aws_iam_role.eks_cluster eks-cluster-role
+
       - name: Terraform Apply
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
