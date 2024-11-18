@@ -35,7 +35,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ZONE_1: ${{ secrets.AWS_ZONE_1 }}
           AWS_ZONE_2: ${{ secrets.AWS_ZONE_2 }}
-        run: ./tf_imports.sh
+        run: ./scripts/tf_imports.sh
 
       - name: Terraform Plan
         run: |
