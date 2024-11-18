@@ -23,7 +23,7 @@ provider "aws" {
 resource "aws_vpc" "tf_vpc" {
   cidr_block = "10.0.0.0/16"
 
-  tags = { Name = "aws_vpc" }
+  tags = { Name = "lanchonete-vpc" }
 }
 
 # Define as subnets dentro da VPC
@@ -35,7 +35,7 @@ resource "aws_subnet" "tf_public_subnet" {
   availability_zone = element([var.aws_zone_1, var.aws_zone_2], count.index)
   map_public_ip_on_launch = true
 
-  tags = { Name = "aws-public-subnet-${count.index}" }
+  tags = { Name = "lanchonete-public-subnet-${count.index}" }
 }
 
 # Subnet privada
@@ -46,13 +46,13 @@ resource "aws_subnet" "tf_private_subnet" {
   availability_zone = element([var.aws_zone_1, var.aws_zone_2], count.index)
   map_public_ip_on_launch = false
 
-  tags = { Name = "aws-private-subnet-${count.index}" }
+  tags = { Name = "lanchonete-private-subnet-${count.index}" }
 }
 
 # Define o cluster
 resource "aws_eks_cluster" "tf_eks_cluster" {
-  name     = "aws-eks-cluster"
-  role_arn = aws_iam_role.eks_cluster.arn
+  name     = "lanchonete-eks-cluster"
+  role_arn = aws_iam_role.tf_eks_cluster_role.arn
 
   vpc_config {
     subnet_ids = [
@@ -69,8 +69,8 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
 }
 
 # Define a role usada no cluster
-resource "aws_iam_role" "eks_cluster" {
-  name = "eks-cluster-role"
+resource "aws_iam_role" "tf_eks_cluster_role" {
+  name = "lanchonete-eks-cluster-role"
 
   assume_role_policy = <<EOF
 {
@@ -92,22 +92,23 @@ EOF
 # Atribui os policies à role usada no cluster
 resource "aws_iam_role_policy_attachment" "eks_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.tf_eks_cluster_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "dynamodb_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-  role       = aws_iam_role.eks_cluster.name
+# Atribui os policies à role usada no cluster
+resource "aws_iam_role_policy_attachment" "aurora_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+  role       = aws_iam_role.tf_eks_cluster_role.name
 }
 
 # O Cloud Watch é o coletor de métricas
 resource "aws_iam_role_policy_attachment" "cloudwatch_policy" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.tf_eks_cluster_role.name
 }
 
 # Cada nó dentro do EKS Cluster é uma instância EC2
 resource "aws_iam_role_policy_attachment" "ebs_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
-  role       = aws_iam_role.eks_cluster.name
+  role       = aws_iam_role.tf_eks_cluster_role.name
 }
