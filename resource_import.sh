@@ -15,7 +15,7 @@ import_resource() {
 get_first_vpc_id() {
   local vpc_name=$1
   aws ec2 describe-vpcs --filters \
-  "Name=tag:Name,Values=${vpc_name}" --query "Vpcs[0].VpcId" --output text \
+  "Name=tag:Name,Values=${vpc_name}" --query "Vpcs[0].VpcId" --output text
 }
 
 get_first_subnet_id() {
