@@ -35,7 +35,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_policy" {
 }
 
 # Cada nó dentro do EKS Cluster é uma instância EC2
-resource "aws_iam_role_policy_attachment" "ebs_policy" {
+resource "aws_iam_role_policy_attachment" "ec2_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
   role       = aws_iam_role.tf_eks_cluster_role.name
 }
