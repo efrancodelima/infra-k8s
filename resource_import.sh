@@ -5,11 +5,7 @@ import_resource() {
   local resource_name=$2
   local resource_id=$3
 
-  terraform import \
-  # -var="aws_region=$AWS_REGION" \
-  # -var="aws_zone_1=$AWS_ZONE_1" \
-  # -var="aws_zone_2=$AWS_ZONE_2" \
-  "$resource_type.$resource_name" "$resource_id" || true
+  terraform import "$resource_type.$resource_name" "$resource_id" || true
 }
 
 check_eks_cluster_exists() {
