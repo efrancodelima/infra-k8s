@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# Constantes
+DHCP_OPTIONS_ID="dopt-0c8fc57b079c91172"
+EKS_CLUSTER_NAME="lanchonete-eks-cluster"
+INTERNET_GATEWAY_ID="igw-0a0f387d0f166b3a6"
+POLICY_NAME_1="AmazonEKSClusterPolicy"
+POLICY_NAME_2="AmazonRDSFullAccess"
+POLICY_NAME_3="CloudWatchFullAccess"
+POLICY_NAME_4="AmazonEC2FullAccess"
+PRIVATE_SUBNET_ID_0="subnet-0a35b1afb7b19cda1"
+PRIVATE_SUBNET_ID_1="subnet-0b03f410da640c4cb"
+PUBLIC_SUBNET_ID_0="subnet-04210519054c41980"
+PUBLIC_SUBNET_ID_1="subnet-0dcb9a941b96ae94b"
+ROLE_NAME="lanchonete-eks-cluster-role"
+ROUTE="0.0.0.0/0"
+ROUTE_TABLE_ID="rtb-0d2b24549dac7dc8e"
+VPC_ID="vpc-0ea4cbbd6e92e3abe"
+
+
+
+# Função auxiliar
 import_resource() {
   local resource_type=$1
   local resource_name=$2
@@ -12,126 +32,42 @@ import_resource() {
   "$resource_type.$resource_name" "$resource_id" || true
 }
 
-check_eks_cluster_exists() {
-  local cluster_name=$1
-  aws eks list-clusters --query "clusters[?@=='${cluster_name}'] | [0]" --output text
-}
-
-check_iam_role_exists() {
-  local role_name=$1
-  aws iam list-roles --query "Roles[?RoleName=='${role_name}'] | [0].RoleName" --output text
-}
-
-check_policy_attached() {
-    ROLE_NAME=$1
-    POLICY_NAME=$2
-    aws iam list-attached-role-policies --role-name ${ROLE_NAME} \
-	  --query "AttachedPolicies[?PolicyName=='${POLICY_NAME}'] | [0].PolicyName" --output text
-}
-
-get_first_vpc_id() {
-  local vpc_name=$1
-  aws ec2 describe-vpcs --filters \
-  "Name=tag:Name,Values=${vpc_name}" --query "Vpcs[0].VpcId" --output text
-}
-
-get_first_subnet_id() {
-  local subnet_name=$1
-  aws ec2 describe-subnets --filters \
-  "Name=tag:Name,Values=${subnet_name}" --query "Subnets[0].SubnetId" --output text
-}
+# Importa o DHCP Options
+import_resource "aws_vpc_dhcp_options" "tf_dhcp_options" "${DHCP_OPTIONS_ID}"
 
 # Importa o cluster kubernetes
-CLUSTER_NAME="lanchonete-eks-cluster"
-CLUSTER_EXISTS=$(check_eks_cluster_exists "$CLUSTER_NAME")
-if [ "$CLUSTER_EXISTS" == "None" ]; then
-  echo "Recurso aws_eks_cluster.tf_eks_cluster não encontrado."
-else
-  import_resource "aws_eks_cluster" "tf_eks_cluster" "$CLUSTER_NAME"
-fi
+import_resource "aws_eks_cluster" "tf_eks_cluster" "$EKS_CLUSTER_NAME"
 
-# Importa a role usada no cluster
-ROLE_NAME="lanchonete-eks-cluster-role"
-ROLE_EXISTS=$(check_iam_role_exists "$ROLE_NAME")
-if [ "$ROLE_EXISTS" == "None" ]; then
-  echo "Recurso aws_iam_role.tf_eks_cluster_role não encontrado."
-else
-  import_resource "aws_iam_role" "tf_eks_cluster_role" "$ROLE_NAME"
-fi
+# Importa o Internet Gateway
+import_resource "aws_internet_gateway" "tf_internet_gateway" "${INTERNET_GATEWAY_ID}"
 
 # Importa os policy attachment da role
-POLICY_1="AmazonEKSClusterPolicy"
-POLICY_2="AmazonRDSFullAccess"
-POLICY_3="CloudWatchFullAccess"
-POLICY_4="AmazonEC2FullAccess"
+import_resource "aws_iam_role_policy_attachment" "eks_policy" \
+"lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_NAME_1}"
 
-POLICY_ATTACHED_1=$(check_policy_attached "$ROLE_NAME" "$POLICY_1")
-POLICY_ATTACHED_2=$(check_policy_attached "$ROLE_NAME" "$POLICY_2")
-POLICY_ATTACHED_3=$(check_policy_attached "$ROLE_NAME" "$POLICY_3")
-POLICY_ATTACHED_4=$(check_policy_attached "$ROLE_NAME" "$POLICY_4")
+import_resource "aws_iam_role_policy_attachment" "rds_policy" \
+"lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_NAME_2}"
 
-if [ "$POLICY_ATTACHED_1" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.eks_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "eks_policy" \
-  "lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_1}"
-fi
+import_resource "aws_iam_role_policy_attachment" "cloudwatch_policy" \
+"lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_NAME_3}"
 
-if [ "$POLICY_ATTACHED_2" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.rds_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "rds_policy" \
-  "lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_2}"
-fi
-
-if [ "$POLICY_ATTACHED_3" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.cloudwatch_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "cloudwatch_policy" \
-  "lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_3}"
-fi
-
-if [ "$POLICY_ATTACHED_4" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.ec2_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "ec2_policy" \
-  "lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_4}"
-fi
-
-# Importa a VPC
-VPC_ID=$(get_first_vpc_id "lanchonete-vpc")
-if [ "$VPC_ID" == "None" ]; then
-  echo "Recurso aws_vpc.tf_vpc não encontrado."
-else
-  import_resource "aws_vpc" "tf_vpc" "$VPC_ID"
-fi
+import_resource "aws_iam_role_policy_attachment" "ec2_policy" \
+"lanchonete-eks-cluster-role/arn:aws:iam::aws:policy/${POLICY_NAME_4}"
 
 # Importa as subnets
-PUBLIC_SUBNET_0_ID=$(get_first_subnet_id "lanchonete-public-subnet-0")
-PUBLIC_SUBNET_1_ID=$(get_first_subnet_id "lanchonete-public-subnet-1")
-PRIVATE_SUBNET_0_ID=$(get_first_subnet_id "lanchonete-private-subnet-0")
-PRIVATE_SUBNET_1_ID=$(get_first_subnet_id "lanchonete-private-subnet-1")
+import_resource "aws_subnet" "tf_private_subnet[0]" "$PRIVATE_SUBNET_0_ID"
+import_resource "aws_subnet" "tf_private_subnet[1]" "$PRIVATE_SUBNET_1_ID"
+import_resource "aws_subnet" "tf_public_subnet[0]" "$PUBLIC_SUBNET_0_ID"
+import_resource "aws_subnet" "tf_public_subnet[1]" "$PUBLIC_SUBNET_1_ID"
 
-if [ "$PUBLIC_SUBNET_0_ID" == "None" ]; then
-  echo "Recurso aws_subnet.tf_public_subnet[0] não encontrado."
-else
-  import_resource "aws_subnet" "tf_public_subnet[0]" "$PUBLIC_SUBNET_0_ID"
-fi
+# Importa a role usada no cluster
+import_resource "aws_iam_role" "tf_eks_cluster_role" "$ROLE_NAME"
 
-if [ "$PUBLIC_SUBNET_1_ID" == "None" ]; then
-  echo "Recurso aws_subnet.tf_public_subnet[1] não encontrado."
-else
-  import_resource "aws_subnet" "tf_public_subnet[1]" "$PUBLIC_SUBNET_1_ID"
-fi
+# Importa a Route
+import_resource "aws_route" "tf_route" "${ROUTE_TABLE_ID}_${ROUTE}"
 
-if [ "$PRIVATE_SUBNET_0_ID" == "None" ]; then
-  echo "Recurso aws_subnet.tf_private_subnet[0] não encontrado."
-else
-  import_resource "aws_subnet" "tf_private_subnet[0]" "$PRIVATE_SUBNET_0_ID"
-fi
+# Importa a Route Table
+import_resource "aws_route_table" "tf_route_table" "${ROUTE_TABLE_ID}"
 
-if [ "$PRIVATE_SUBNET_1_ID" == "None" ]; then
-  echo "Recurso aws_subnet.tf_private_subnet[1] não encontrado."
-else
-  import_resource "aws_subnet" "tf_private_subnet[1]" "$PRIVATE_SUBNET_1_ID"
-fi
+# Importa a VPC
+import_resource "aws_vpc" "tf_vpc" "$VPC_ID"
