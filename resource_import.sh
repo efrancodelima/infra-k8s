@@ -54,7 +54,7 @@ fi
 
 # Importa a VPC
 VPC_ID=$(get_first_vpc_id "lanchonete-vpc")
-if [ "$SUBNET_GROUP_ID" == "None" ]; then
+if [ "$VPC_ID" == "None" ]; then
   echo "Recurso aws_vpc.tf_vpc não encontrado."
 else
   import_resource "aws_vpc" "tf_vpc" "$VPC_ID"
