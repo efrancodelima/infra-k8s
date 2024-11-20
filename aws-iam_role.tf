@@ -23,7 +23,7 @@ resource "aws_iam_role_policy_attachment" "eks_policy" {
   role       = aws_iam_role.tf_eks_cluster_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "aurora_policy" {
+resource "aws_iam_role_policy_attachment" "rds_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
   role       = aws_iam_role.tf_eks_cluster_role.name
 }
