@@ -70,33 +70,33 @@ POLICY_ATTACHED_2=$(check_policy_attached "$ROLE_NAME" "$POLICY_2")
 POLICY_ATTACHED_3=$(check_policy_attached "$ROLE_NAME" "$POLICY_3")
 POLICY_ATTACHED_4=$(check_policy_attached "$ROLE_NAME" "$POLICY_4")
 
-if [ "$POLICY_ATTACHED_1" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.eks_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "eks_policy" \
-  "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_1}"
-fi
+# if [ "$POLICY_ATTACHED_1" == "None" ]; then
+#   echo "Recurso aws_iam_role_policy_attachment.eks_policy não encontrado."
+# else
+#   import_resource "aws_iam_role_policy_attachment" "eks_policy" \
+#   "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_1}"
+# fi
 
-if [ "$POLICY_ATTACHED_2" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.rds_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "rds_policy" \
-  "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_2}"
-fi
+# if [ "$POLICY_ATTACHED_2" == "None" ]; then
+#   echo "Recurso aws_iam_role_policy_attachment.rds_policy não encontrado."
+# else
+#   import_resource "aws_iam_role_policy_attachment" "rds_policy" \
+#   "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_2}"
+# fi
 
-if [ "$POLICY_ATTACHED_3" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.cloudwatch_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "cloudwatch_policy" \
-  "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_3}"
-fi
+# if [ "$POLICY_ATTACHED_3" == "None" ]; then
+#   echo "Recurso aws_iam_role_policy_attachment.cloudwatch_policy não encontrado."
+# else
+#   import_resource "aws_iam_role_policy_attachment" "cloudwatch_policy" \
+#   "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_3}"
+# fi
 
-if [ "$POLICY_ATTACHED_4" == "None" ]; then
-  echo "Recurso aws_iam_role_policy_attachment.ec2_policy não encontrado."
-else
-  import_resource "aws_iam_role_policy_attachment" "ec2_policy" \
-  "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_4}"
-fi
+# if [ "$POLICY_ATTACHED_4" == "None" ]; then
+#   echo "Recurso aws_iam_role_policy_attachment.ec2_policy não encontrado."
+# else
+#   import_resource "aws_iam_role_policy_attachment" "ec2_policy" \
+#   "lanchonete-eks-cluster-role:arn:aws:iam::aws:policy/${POLICY_4}"
+# fi
 
 # Importa a VPC
 VPC_ID=$(get_first_vpc_id "lanchonete-vpc")
