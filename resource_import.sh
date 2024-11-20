@@ -60,10 +60,10 @@ else
 fi
 
 # Importa os policy attachment da role
-$POLICY_1="AmazonEKSClusterPolicy"
-$POLICY_2="AmazonRDSFullAccess"
-$POLICY_3="CloudWatchFullAccess"
-$POLICY_4="AmazonEC2FullAccess"
+POLICY_1="AmazonEKSClusterPolicy"
+POLICY_2="AmazonRDSFullAccess"
+POLICY_3="CloudWatchFullAccess"
+POLICY_4="AmazonEC2FullAccess"
 
 POLICY_ATTACHED_1=$(check_policy_attached "$ROLE_NAME" "$POLICY_1")
 POLICY_ATTACHED_2=$(check_policy_attached "$ROLE_NAME" "$POLICY_2")
