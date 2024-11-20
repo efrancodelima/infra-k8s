@@ -6,9 +6,9 @@ import_resource() {
   local resource_id=$3
 
   terraform import \
-  -var="aws_region=$AWS_REGION" \
-  -var="aws_zone_1=$AWS_ZONE_1" \
-  -var="aws_zone_2=$AWS_ZONE_2" \
+  # -var="aws_region=$AWS_REGION" \
+  # -var="aws_zone_1=$AWS_ZONE_1" \
+  # -var="aws_zone_2=$AWS_ZONE_2" \
   "$resource_type.$resource_name" "$resource_id" || true
 }
 
@@ -54,7 +54,7 @@ fi
 
 # Importa a VPC
 VPC_ID=$(get_first_vpc_id "lanchonete-vpc")
-if [ "$SUBNET_GROUP_ID" == "None" ]; then
+if [ "$VPC_ID" == "None" ]; then
   echo "Recurso aws_vpc.tf_vpc não encontrado."
 else
   import_resource "aws_vpc" "tf_vpc" "$VPC_ID"
