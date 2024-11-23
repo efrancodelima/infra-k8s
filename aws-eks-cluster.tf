@@ -13,6 +13,6 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.eks_policy
+    aws_iam_role_policy_attachment.tf_cluster_policy_eks
   ]
 }
