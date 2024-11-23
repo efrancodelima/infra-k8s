@@ -15,6 +15,7 @@ PUBLIC_SUBNET_ID_1="subnet-0dcb9a941b96ae94b"
 ROLE_NAME="lanchonete-eks-cluster-role"
 ROUTE="0.0.0.0/0"
 ROUTE_TABLE_ID="rtb-0d2b24549dac7dc8e"
+SECURITY_GROUP_ID=
 VPC_ID="vpc-0ea4cbbd6e92e3abe"
 
 
