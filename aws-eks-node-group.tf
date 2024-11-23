@@ -21,8 +21,5 @@ resource "aws_eks_node_group" "tf_eks_node_group" {
   }
 
   instance_types = ["m5.large"]
-
-  tags = {
-    Name = "tf_node_group-node-group"
-  }
+  
 }

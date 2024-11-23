@@ -1,4 +1,3 @@
-# Recebe as variáveis do action
 variable "aws_region" {
   description = "AWS region"
   type = string

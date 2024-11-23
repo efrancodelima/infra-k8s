@@ -1,4 +1,3 @@
-# Subnets públicas
 resource "aws_subnet" "tf_public_subnet" {
   count             = 2
   vpc_id            = aws_vpc.tf_vpc.id
@@ -9,7 +8,6 @@ resource "aws_subnet" "tf_public_subnet" {
   tags = { Name = "lanchonete-public-subnet-${count.index}" }
 }
 
-# Subnets privadas
 resource "aws_subnet" "tf_private_subnet" {
   count             = 2
   vpc_id            = aws_vpc.tf_vpc.id
