@@ -8,7 +8,7 @@ resource "aws_iam_role" "tf_eks_node_group_role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "ec2.amazonaws.com"
+          Service = [ "eks-nodegroup.amazonaws.com", "ec2.amazonaws.com" ]
         }
       },
     ]
