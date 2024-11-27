@@ -3,7 +3,7 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
   version  = "1.31"
   
   role_arn = aws_iam_role.tf_eks_cluster_role.arn
-  bootstrap_self_managed_addons = false
+  bootstrap_self_managed_addons = true
   
   vpc_config {
     subnet_ids = var.subnet_ids
