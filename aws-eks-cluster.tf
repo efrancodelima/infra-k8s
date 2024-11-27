@@ -16,6 +16,10 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
   kubernetes_network_config {
     service_ipv4_cidr = "10.100.0.0/16"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 output "eks_cluster_endpoint" {
