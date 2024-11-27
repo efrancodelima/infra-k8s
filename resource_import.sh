@@ -19,7 +19,6 @@ NG_ROLE_NAME="lanchonete-eks-node-group-role"
 
 CLUSTER_POLICIES=(
   "AmazonEKSClusterPolicy"
-  "AmazonRDSFullAccess"
   "CloudWatchFullAccess"
   "AmazonEC2FullAccess"
 )
