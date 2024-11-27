@@ -1,8 +1,10 @@
 resource "aws_eks_cluster" "tf_eks_cluster" {
   name     = "lanchonete-eks-cluster"
-  role_arn = aws_iam_role.tf_eks_cluster_role.arn
   version  = "1.31"
-
+  
+  role_arn = aws_iam_role.tf_eks_cluster_role.arn
+  bootstrap_self_managed_addons = false
+  
   vpc_config {
     subnet_ids = var.subnet_ids
     security_group_ids = [ aws_security_group.tf_eks_security_group.id ]
