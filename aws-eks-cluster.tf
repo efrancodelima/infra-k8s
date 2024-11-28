@@ -1,9 +1,7 @@
 resource "aws_eks_cluster" "tf_eks_cluster" {
   name     = "lanchonete-eks-cluster"
   version  = "1.31"
-  
   role_arn = aws_iam_role.tf_eks_cluster_role.arn
-  bootstrap_self_managed_addons = true
   
   vpc_config {
     subnet_ids = var.subnet_ids
@@ -15,6 +13,10 @@ resource "aws_eks_cluster" "tf_eks_cluster" {
 
   kubernetes_network_config {
     service_ipv4_cidr = "10.100.0.0/16"
+  }
+
+  lifecycle {
+    ignore_changes = [ bootstrap_self_managed_addons ]
   }
 }
 
