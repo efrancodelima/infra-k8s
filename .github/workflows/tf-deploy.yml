@@ -38,7 +38,7 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform plan \
-          -var="aws_account_id=${ACCOUNT_ID}" \
+          -var="aws_account_id=${AWS_ACCOUNT_ID}" \
           -var="db_url=${DATASOURCE_URL}" \
           -var="db_username=${DATASOURCE_USERNAME}" \
           -var="db_password=${DATASOURCE_PASSWORD}" \
