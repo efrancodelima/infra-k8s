@@ -1,6 +1,6 @@
-resource "aws_security_group" "tf_eks_security_group" {
+resource "aws_security_group" "tf_ecs_service_sg" {
   vpc_id = var.vpc_id
-  name   = "lanchonete-eks-security-group"
+  name   = "lanchonete-ecs-security-group"
 
   ingress {
     from_port   = 8080

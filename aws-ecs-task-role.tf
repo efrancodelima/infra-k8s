@@ -1,5 +1,5 @@
-resource "aws_iam_role" "tf_eks_cluster_role" {
-  name = "lanchonete-eks-cluster-role"
+resource "aws_iam_role" "tf_ecs_task_role" {
+  name = "lanchonete-ecs-task-execution-role"
 
   assume_role_policy = <<EOF
 {
@@ -8,7 +8,7 @@ resource "aws_iam_role" "tf_eks_cluster_role" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "eks.amazonaws.com"
+        "Service": "ecs-tasks.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
