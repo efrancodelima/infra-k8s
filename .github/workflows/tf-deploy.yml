@@ -36,7 +36,13 @@ jobs:
         continue-on-error: true
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: |
+          terraform plan \
+          -var="aws_account_id=${ACCOUNT_ID}" \
+          -var="db_url=${DATASOURCE_URL}" \
+          -var="db_username=${DATASOURCE_USERNAME}" \
+          -var="db_password=${DATASOURCE_PASSWORD}" \
+          -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply "tfplan"
