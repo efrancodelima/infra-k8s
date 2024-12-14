@@ -1,13 +1,12 @@
-resource "aws_security_group" "tf_ecs_service_sg" {
-  name   = "lanchonete-ecs-sg"
+resource "aws_security_group" "tf_ecs_sg" {
+  name   = "lanchonete-ecs-serv-sg"
   vpc_id = var.vpc_id
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    # security_groups = [aws_security_group.tf_lb_sg.id]
+    security_groups = [aws_security_group.tf_lb_sg.id]
   }
 
   egress {
@@ -17,5 +16,5 @@ resource "aws_security_group" "tf_ecs_service_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # depends_on = [aws_security_group.tf_lb_sg]
+  depends_on = [aws_security_group.tf_lb_sg]
 }

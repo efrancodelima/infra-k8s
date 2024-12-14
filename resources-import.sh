@@ -20,7 +20,7 @@ get_task_definition_arn() {
   local task_arn=$(aws ecs list-tasks \
     --cluster "lanchonete-ecs-cluster" \
     --query 'taskArns[0]' \
-    --output text)
+    --output text  2>/dev/null)
 
   if [ "$task_arn" == "None" ]; then
     echo "None"
@@ -31,74 +31,99 @@ get_task_definition_arn() {
     --cluster "lanchonete-ecs-cluster" \
     --tasks "$task_arn" \
     --query 'tasks[0].taskDefinitionArn' \
-    --output text)
+    --output text 2>/dev/null)
   
   echo "$task_def_arn"
 }
 
 # Constantes
-CLUSTER_NAME="lanchonete-ecs-cluster"
-SERVICE_NAME="lanchonete-ecs-service"
-LB_NAME="lanchonete-load-balancer"
+SG_NAME_ECS="lanchonete-ecs-sg"
+SG_NAME_LB="lanchonete-lb-sg"
 
-ECS_SG_NAME="lanchonete-ecs-sg"
-LB_SG_NAME="lanchonete-lb-sg"
-ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${ECS_SG_NAME}" --query "SecurityGroups[0].GroupId" --output text)
-LB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${LB_SG_NAME}" --query "SecurityGroups[0].GroupId" --output text)
+SG_ID_ECS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME_ECS}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
+SG_ID_LB=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME_LB}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
 
-TASK_DEF_ARN=$(get_task_definition_arn)
 TASK_ROLE_NAME="lanchonete-ecs-task-role"
 TASK_EXEC_ROLE_NAME="lanchonete-ecs-task-exec-role"
 
-TASK_POLICY_RDS="AmazonRDSFullAccess"
-TASK_POLICY_RDS_DATA="AmazonRDSDataFullAccess"
-TASK_EXEC_POLICY_TER="service-role/AmazonECSTaskExecutionRolePolicy"
-TASK_EXEC_POLICY_CW="CloudWatchFullAccess"
+POLICY_RDS_TASK="AmazonRDSFullAccess"
+POLICY_RDS_DATA_TASK="AmazonRDSDataFullAccess"
+POLICY_TER_TASK_EXEC="service-role/AmazonECSTaskExecutionRolePolicy"
+POLICY_CW_TASK_EXEC="CloudWatchFullAccess"
+
+CLUSTER_NAME="lanchonete-ecs-cluster"
+TASK_DEF_ARN=$(get_task_definition_arn)
+SERVICE_NAME="lanchonete-ecs-service"
+
+TG_NAME="lanchonete-target-group"
+TG_ARN=$(aws elbv2 describe-target-groups --names "${TG_NAME}" --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null)
+
+LB_NAME="lanchonete-load-balancer"
+LB_ARN=$(aws elbv2 describe-load-balancers --names ${LB_NAME} --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null)
+
+LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn ${LB_ARN} --query 'Listeners[0].ListenerArn' --output text 2>/dev/null)
 
 
-### CLUSTER
+# Importa os securities groups
+if [ "${SG_ID_ECS}" = "None" ]; then
+    echo "Security group do service ECS não encontrado."
+else
+    import_resource "aws_security_group" "tf_ecs_sg" "${SG_ID_ECS}"
+fi
 
-# Importa o cluster ECS
+if [ "${SG_ID_LB}" = "None" ]; then
+    echo "Security group do load balancer não encontrado."
+else
+    import_resource "aws_security_group" "tf_lb_sg" "${SG_ID_LB}"
+fi
+
+# Importa as roles
+import_resource "aws_iam_role" "tf_ecs_task_role" "${TASK_ROLE_NAME}"
+import_resource "aws_iam_role" "tf_ecs_task_exec_role" "${TASK_EXEC_ROLE_NAME}"
+
+# Importa as policies
+import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_policy_rds" \
+"${TASK_ROLE_NAME}/arn:aws:iam::aws:policy/${POLICY_RDS_TASK}"
+
+import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_policy_rds_data" \
+"${TASK_ROLE_NAME}/arn:aws:iam::aws:policy/${POLICY_RDS_DATA_TASK}"
+
+import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_exec_policy_ter" \
+"${TASK_EXEC_ROLE_NAME}/arn:aws:iam::aws:policy/${POLICY_TER_TASK_EXEC}"
+
+import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_exec_policy_cw" \
+"${TASK_EXEC_ROLE_NAME}/arn:aws:iam::aws:policy/${POLICY_CW_TASK_EXEC}"
+
+# Importa o cluster
 import_resource "aws_ecs_cluster" "tf_ecs_cluster" "${CLUSTER_NAME}"
 
-
-### SERVICE
+# Importa a task definition
+if [ "${TASK_DEF_ARN}" = "None" ]; then
+    echo "Task definition não encontrada."
+else
+    import_resource "aws_ecs_task_definition" "tf_ecs_task_definition" "${TASK_DEF_ARN}"
+fi
 
 # Importa o service
 import_resource "aws_ecs_service" "tf_ecs_service" "${CLUSTER_NAME}/${SERVICE_NAME}"
 
-# Importa os securities groups
-import_resource "aws_security_group" "tf_ecs_service_sg" "${ECS_SG_ID}"
-
-
-### TASK DEFINITION
-
-# Importa a task definition
-import_resource "aws_ecs_task_definition" "tf_ecs_task_definition" "${TASK_DEF_ARN}"
-
-# Importa a task role e a task execution role
-import_resource "aws_iam_role" "tf_ecs_task_role" "${TASK_ROLE_NAME}"
-import_resource "aws_iam_role" "tf_ecs_task_exec_role" "${TASK_EXEC_ROLE_NAME}"
-
-# Importa as políticas da task role
-import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_policy_rds" \
-"${TASK_ROLE_NAME}/arn:aws:iam::aws:policy/${TASK_POLICY_RDS}"
-
-import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_policy_rds_data" \
-"${TASK_ROLE_NAME}/arn:aws:iam::aws:policy/${TASK_POLICY_RDS_DATA}"
-
-# Importa as políticas da task execution role
-import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_exec_policy_ter" \
-"${TASK_EXEC_ROLE_NAME}/arn:aws:iam::aws:policy/${TASK_EXEC_POLICY_TER}"
-
-import_resource "aws_iam_role_policy_attachment" "tf_ecs_task_exec_policy_cw" \
-"${TASK_EXEC_ROLE_NAME}/arn:aws:iam::aws:policy/${TASK_EXEC_POLICY_CW}"
-
-
-### LOAD BALANCER
+# Importa o target group
+if [ -z "${TG_ARN}" ]; then
+    echo "Target group não encontrado."
+else
+    import_resource "aws_lb_target_group" "tf_lb_tg" ${TG_ARN}
+fi
 
 # Importa o load balancer
-# import_resource "aws_lb" "tf_load_balancer" "arn:aws:elasticloadbalancing:us-east-1:${AWS_ACCOUNT_ID}:loadbalancer/${LB_NAME}"
+if [ -z "${LB_ARN}" ]; then
+    echo "Load balancer não encontrado."
+else
+    import_resource "aws_lb" "tf_load_balancer" "${LB_ARN}"
+fi
 
-# Importa o security group do load balancer
-# import_resource "aws_security_group" "tf_lb_sg" "${LB_SG_ID}"
+# Importa o listener
+if [ -z "${LISTENER_ARN}" ]; then
+    echo "Listener não encontrado."
+else
+    import_resource "aws_lb_listener" "tf_lb_listener" ${LISTENER_ARN}
+fi
