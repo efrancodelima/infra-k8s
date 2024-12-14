@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "tf_ecs_task_definition" {
 
   container_definitions = jsonencode([{
     name            = "lanchonete-app-container"
-    image           = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/app-lanchonete:latest"
+    image           = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/app-teste:latest"
     essential       = true
     memory          = 1024   # 1 GB
     cpu             = 512    # 0,5 vCPU

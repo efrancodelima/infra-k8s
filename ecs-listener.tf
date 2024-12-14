@@ -11,10 +11,6 @@ resource "aws_lb_listener" "tf_lb_listener" {
         arn    = aws_lb_target_group.tf_lb_tg.arn
         weight = 1
       }
-
-      stickiness {
-        enabled = false
-      }
     }
   }
 }
