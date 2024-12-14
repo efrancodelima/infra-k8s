@@ -9,6 +9,6 @@ resource "aws_ecs_service" "tf_ecs_service" {
   network_configuration {
     subnets = var.private_subnet_ids
     security_groups = [ aws_security_group.tf_ecs_service_sg.id ]
-    assign_public_ip = false
+    assign_public_ip = true
   }
 }

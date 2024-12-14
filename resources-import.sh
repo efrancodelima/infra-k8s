@@ -47,8 +47,8 @@ ECS_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=$
 LB_SG_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${LB_SG_NAME}" --query "SecurityGroups[0].GroupId" --output text)
 
 TASK_DEF_ARN=$(get_task_definition_arn)
-TASK_ROLE_NAME="lanchonete-ecs-task-exec-role"
-TASK_EXEC_ROLE_NAME="lanchonete-ecs-task-role"
+TASK_ROLE_NAME="lanchonete-ecs-task-role"
+TASK_EXEC_ROLE_NAME="lanchonete-ecs-task-exec-role"
 
 TASK_POLICY_RDS="AmazonRDSFullAccess"
 TASK_POLICY_RDS_DATA="AmazonRDSDataFullAccess"

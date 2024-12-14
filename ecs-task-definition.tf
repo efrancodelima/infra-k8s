@@ -1,5 +1,5 @@
 resource "aws_ecs_task_definition" "tf_ecs_task_definition" {
-  family                   = "lanchonete-java-task"
+  family                   = "lanchonete-task-definition"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   task_role_arn            = aws_iam_role.tf_ecs_task_role.arn
