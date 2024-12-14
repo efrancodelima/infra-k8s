@@ -1,8 +1,9 @@
 resource "aws_ecs_task_definition" "tf_ecs_task_definition" {
-  family                   = "lanchonete-java-task"
+  family                   = "lanchonete-task-definition"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = aws_iam_role.tf_ecs_task_role.arn
+  task_role_arn            = aws_iam_role.tf_ecs_task_role.arn
+  execution_role_arn       = aws_iam_role.tf_ecs_task_exec_role.arn
 
   memory            = 1024   # 1 GB
   cpu               = 512    # 0,5 vCPU

@@ -1,0 +1,8 @@
+backup/
+.terraform/
+.terraform*
+terraform*
+tfplan
+
+z-destroy.sh
+z-run.sh
