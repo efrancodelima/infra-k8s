@@ -4,6 +4,6 @@ backup/
 terraform*
 tfplan
 
-z-destroy.sh
-z-run.sh
+x-run.sh
+y-destroy.sh
 z-describe.sh
