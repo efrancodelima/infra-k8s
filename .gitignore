@@ -6,3 +6,4 @@ tfplan
 
 z-destroy.sh
 z-run.sh
+z-describe.sh
