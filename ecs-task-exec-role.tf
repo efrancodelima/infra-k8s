@@ -1,5 +1,5 @@
-resource "aws_iam_role" "tf_ecs_task_role" {
-  name = "lanchonete-ecs-task-execution-role"
+resource "aws_iam_role" "tf_ecs_task_exec_role" {
+  name = "lanchonete-ecs-task-exec-role"
 
   assume_role_policy = <<EOF
 {

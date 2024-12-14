@@ -7,10 +7,10 @@
 # $DATASOURCE_PASSWORD
 
 # Iniciar o terraform
-terraform init
+# terraform init
 
 # Importar os recursos
-./resource_import.sh
+./resources-import.sh
 
 # Executar o planejamento
 terraform plan \
