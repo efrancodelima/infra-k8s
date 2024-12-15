@@ -49,4 +49,9 @@ resource "aws_ecs_task_definition" "tf_ecs_task_definition" {
       }
     }
   }])
+
+  depends_on = [
+    aws_iam_role.tf_ecs_task_role,
+    aws_iam_role.tf_ecs_task_exec_role
+  ]
 }

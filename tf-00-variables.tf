@@ -25,15 +25,15 @@ variable "aws_zone_2" {
 variable "vpc_id" {
   description = "O id da VPC"
   type = string
-  default = "vpc-09d12ffbeaeefd374"
+  default = "vpc-0b651ac3c75c4bd48"
 }
 
 variable "private_subnet_ids" {
   description = "A lista com os ids das subnets privadas"
   type = list(string)
   default = [
-    "subnet-0421366e9d4a3fe52",   # private 1
-    "subnet-05cf58f58b3f06a4c"    # private 2
+    "subnet-0af241860aeb1ef1d",   # private 1
+    "subnet-03fb8f366403fba19"    # private 2
   ]
 }
 
@@ -41,8 +41,8 @@ variable "public_subnet_ids" {
   description = "A lista com os ids das subnets públicas"
   type = list(string)
   default = [
-    "subnet-0521cf6f04ef8a9e0",   # public 1
-    "subnet-037f9395a0939a6d0"    # public 2
+    "subnet-0b19c7d0fd84e1a28",   # public 1
+    "subnet-037488db47e7ed0b2"    # public 2
   ]
 }
 
