@@ -13,10 +13,11 @@ Link do projeto no GitHub:
 
 - [Objetivos](#objetivos)
 - [Requisitos](#requisitos)
-  - [Aplicação](#aplicação)
+  - [API Web](#api-web)
   - [Arquitetura](#arquitetura)
   - [Pipeline](#pipeline)
 - [Aplicação](#aplicação)
+  - [Instrução para rodar a aplicação](#instrução-para-rodar-a-aplicação)
 - [Banco de dados](#banco-de-dados)
   - [Escolha e justificativa](#escolha-e-justificativa)
   - [Documentação](#documentação)
@@ -30,7 +31,7 @@ Desenvolver um sistema para uma lanchonete local em fase de expansão. O sistema
 
 ## Requisitos
 
-### Aplicação
+### API Web
 
 A aplicação deverá oferecer a seguinte API web para consumo:
 
@@ -54,7 +55,35 @@ Pedido
 - Pedidos mais antigos primeiro e mais novos depois.
 - Pedidos finalizados não devem aparecer na lista.
 
-#### Instruções para executar a aplicação
+### Arquitetura
+
+Arquitetura do software: utilizar a Clean Architecture.
+
+Arquitetura da infra: utilizar o kubernetes para rodar a aplicação, que deverá rodar na nuvem utilizando os serviços serverless.
+O banco de dados do projeto deverá ser uma solução oferecida pela nuvem escolhida.
+
+### Pipeline
+
+O projeto foi dividido em 4 partes:
+
+- uma função lambda para a autenticação do usuário
+- uma aplicação com as regras de negócio
+- a infraestrutura kubernetes para a aplicação
+- a infraestrutura para o banco de dados
+
+Cada parte tem um repositório separado no GitHub, conforme mencionado no início deste documento, e todos os repositórios necessitam pull request para realizar qualquer tipo de alteração na branch main. As branchs main/master devem estar protegidas de forma a não permitir commits diretos.
+
+Cada repositório deverá acionar o respectivo pipeline sempre que a branch main for alterada, realizando o deploy na nuvem escolhida.
+
+## Aplicação
+
+A aplicação não mudou em relação à fase anterior, mas foi criada uma pipeline que antes não existia.
+
+Essa pipeline compila o projeto em um arquivo jar, executa os testes, compila o projeto em uma imagem docker, faz o login/push/logout na AWS ECR e por fim o deploy na infra kubernetes. O logout é feito sempre que o login for bem sucedido, mesmo que o push falhe.
+
+O push é feito duas vezes, uma com a tag igual à versão do projeto e outra com a tag latest. O repositório ECR é do tipo mutável, já que a tag latest precisa ser substituída a cada nova versão, mas na pipeline foi adicionado um script bash que impede que o primeiro push substitua uma versão já existente do projeto. Exemplificando: se já existe uma imagem com a tag "2.0.5" no ECR, a pipeline não permite subir outra imagem com a mesma tag; mas a tag latest ela permite subir quantas vezes for necessário.
+
+### Instrução para rodar a aplicação
 
 Primeiro, é necessário fazer o deploy, nessa ordem, da infra do banco de dados, da infra kubernetes, da aplicação e, por fim, da lambda.
 
@@ -117,34 +146,6 @@ curl -X PUT <URL>/api/v2/pedidos/webhook/ \
 "card": {}
 }'
 ```
-
-### Arquitetura
-
-Arquitetura do software: utilizar a Clean Architecture.
-
-Arquitetura da infra: utilizar o kubernetes para rodar a aplicação, que deverá rodar na nuvem utilizando os serviços serverless.
-O banco de dados do projeto deverá ser uma solução oferecida pela nuvem escolhida.
-
-### Pipeline
-
-O projeto foi dividido em 4 partes:
-
-- uma função lambda para a autenticação do usuário
-- uma aplicação com as regras de negócio
-- a infraestrutura kubernetes para a aplicação
-- a infraestrutura para o banco de dados
-
-Cada parte tem um repositório separado no GitHub, conforme mencionado no início deste documento, e todos os repositórios necessitam pull request para realizar qualquer tipo de alteração na branch main. As branchs main/master devem estar protegidas de forma a não permitir commits diretos.
-
-Cada repositório deverá acionar o respectivo pipeline sempre que a branch main for alterada, realizando o deploy na nuvem escolhida.
-
-## Aplicação
-
-A aplicação não mudou em relação à fase anterior, mas foi criada uma pipeline que antes não existia.
-
-Essa pipeline compila o projeto em um arquivo jar, executa os testes, compila o projeto em uma imagem docker, faz o login/push/logout na AWS ECR e por fim o deploy na infra kubernetes. O logout é feito sempre que o login for bem sucedido, mesmo que o push falhe.
-
-O push é feito duas vezes, uma com a tag igual à versão do projeto e outra com a tag latest. O repositório ECR é do tipo mutável, já que a tag latest precisa ser substituída a cada nova versão, mas na pipeline foi adicionado um script bash que impede que o primeiro push substitua uma versão já existente do projeto. Exemplificando: se já existe uma imagem com a tag "2.0.5" no ECR, a pipeline não permite subir outra imagem com a mesma tag; mas a tag latest ela permite subir quantas vezes for necessário.
 
 ## Banco de dados
 
