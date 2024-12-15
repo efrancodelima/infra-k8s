@@ -56,3 +56,8 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply "tfplan"
+
+      - name: Link da aplicação
+        run: |
+          aws apigatewayv2 get-apis \
+          --query "Items[?Name == '${API_GATEWAY_NAME}'] | [0].ApiEndpoint" --output text

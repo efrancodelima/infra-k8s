@@ -13,4 +13,9 @@ resource "aws_lb_listener" "tf_lb_listener" {
       }
     }
   }
+
+  depends_on = [
+    aws_lb.tf_load_balancer,
+    aws_lb_target_group.tf_lb_tg
+  ]
 }

@@ -25,4 +25,11 @@ resource "aws_ecs_service" "tf_ecs_service" {
     container_name   = "lanchonete-app-container"
     container_port   = 8080
   }
+
+  depends_on = [
+    aws_ecs_cluster.tf_ecs_cluster,
+    aws_ecs_task_definition.tf_ecs_task_definition,
+    aws_security_group.tf_ecs_sg,
+    aws_lb_target_group.tf_lb_tg
+  ]
 }
