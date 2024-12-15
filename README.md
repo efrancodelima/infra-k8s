@@ -12,45 +12,27 @@ Link do projeto no GitHub:
 # Índice
 
 - [Objetivos](#objetivos)
-- [Requisitos do negócio](#requisitos-do-negócio)
-- [Instruções para executar a aplicação](#instruções-para-executar-a-aplicação)
+- [Requisitos](#requisitos)
+  - [Aplicação](#aplicação)
+  - [Arquitetura](#arquitetura)
+  - [Pipeline](#pipeline)
+- [Aplicação](#aplicação)
+- [Banco de dados](#banco-de-dados)
+  - [Escolha e justificativa](#escolha-e-justificativa)
+  - [Documentação](#documentação)
+    - [Modelo conceitual](#modelo-conceitual)
+    - [Modelo lógico](#modelo-lógico)
+- [Infra kubernetes](#infra-kubernetes)
 
 ## Objetivos
 
-Desenvolver um sistema para uma lanchonete, seguindo os pré-requisitos especificados no Tech Challenge.
+Desenvolver um sistema para uma lanchonete local em fase de expansão. O sistema deverá realizar o controle dos pedidos, além de outras funções correlatas, conforme especificado no Tech Challenge.
 
-## Requisitos do negócio
-
-Em relação à fase anterior, foi feita a migração do projeto que antes rodava localmente (com o minikube) para a nuvem da Amazon Web Services (AWS).
-
-O projeto foi dividido em 4 partes:
-
-- uma função lambda para a autenticação do usuário
-- uma aplicação com as regras de negócio
-- a infraestrutura kubernetes para a aplicação
-- a infraestrutura para o banco de dados
-
-Cada parte tem um repositório separado no GitHub, conforme mencionado no início deste documento, e todos os repositórios necessitam pull request para realizar qualquer tipo de alteração na branch main.
-
-A branch main dispara um GitHub Action, que executa o deploy na AWS, criando ou atualizando os recursos. No caso da aplicação, ele também faz o build do arquivo jar, testa o código, faz o build da imagem docker, envia a imagem para o repositório ECR da Amazon (utilizando duas tags: a versão do projeto e a tag latest) e faz o deploy no cluster EKS.
-
-### Função Lambda
-
-Responsável pela autenticação do usuário, que deve se identificar pelo CPF.
-
-Para tal, foi utilizado o API Gateway, o Lambda e o Cognito.
-
-O Lambda também se comunica com o banco de dados para verificar se o CPF já está cadastrado.
+## Requisitos
 
 ### Aplicação
 
-No que diz respeito ao software, o projeto foi desenvolvido em Java (JDK 17) seguindo os princípios da Clean Architecture.
-
-A única alteração no código em relação à fasse anterior é que, como o banco de dados migrou do MySQL para o Amazon Aurora, alguns ajustes foram necessários na configuração do Springboot e nos repositórios.
-
-#### API da aplicação
-
-Não houve mudanças em relação à fase anterior.
+A aplicação deverá oferecer a seguinte API web para consumo:
 
 Cliente
 
@@ -72,21 +54,9 @@ Pedido
 - Pedidos mais antigos primeiro e mais novos depois.
 - Pedidos finalizados não devem aparecer na lista.
 
-### Infraestrutura kubernetes
+#### Instruções para executar a aplicação
 
-Foi criado um EKS Cluster para rodar a aplicação. Dentro desse cluster temos o deployment, o service e o HPA.
-
-### Infraestrutura do banco de dados
-
-O banco de dados escolhido foi o Amazon Aurora, que é do tipo relacional e compatível com MySQL e postgreSQL.
-
-Esse banco utiliza o Amazon RDS como service e roda dentro do Aurora Cluster (um cluster específico para banco de dados da AWS).
-
-## Documentação e modelagem do banco de dados
-
-Em construção.
-
-## Instruções para executar a aplicação
+Primeiro, é necessário fazer o deploy, nessa ordem, da infra do banco de dados, da infra kubernetes, da aplicação e, por fim, da lambda.
 
 Sugestão de ordem para execução das APIs:
 
@@ -147,3 +117,98 @@ curl -X PUT <URL>/api/v2/pedidos/webhook/ \
 "card": {}
 }'
 ```
+
+### Arquitetura
+
+Arquitetura do software: utilizar a Clean Architecture.
+
+Arquitetura da infra: utilizar o kubernetes para rodar a aplicação, que deverá rodar na nuvem utilizando os serviços serverless.
+O banco de dados do projeto deverá ser uma solução oferecida pela nuvem escolhida.
+
+### Pipeline
+
+O projeto foi dividido em 4 partes:
+
+- uma função lambda para a autenticação do usuário
+- uma aplicação com as regras de negócio
+- a infraestrutura kubernetes para a aplicação
+- a infraestrutura para o banco de dados
+
+Cada parte tem um repositório separado no GitHub, conforme mencionado no início deste documento, e todos os repositórios necessitam pull request para realizar qualquer tipo de alteração na branch main. As branchs main/master devem estar protegidas de forma a não permitir commits diretos.
+
+Cada repositório deverá acionar o respectivo pipeline sempre que a branch main for alterada, realizando o deploy na nuvem escolhida.
+
+## Aplicação
+
+A aplicação não mudou em relação à fase anterior, mas foi criada uma pipeline que antes não existia.
+
+Essa pipeline compila o projeto em um arquivo jar, executa os testes, compila o projeto em uma imagem docker, faz o login/push/logout na AWS ECR e por fim o deploy na infra kubernetes. O logout é feito sempre que o login for bem sucedido, mesmo que o push falhe.
+
+O push é feito duas vezes, uma com a tag igual à versão do projeto e outra com a tag latest. O repositório ECR é do tipo mutável, já que a tag latest precisa ser substituída a cada nova versão, mas na pipeline foi adicionado um script bash que impede que o primeiro push substitua uma versão já existente do projeto. Exemplificando: se já existe uma imagem com a tag "2.0.5" no ECR, a pipeline não permite subir outra imagem com a mesma tag; mas a tag latest ela permite subir quantas vezes for necessário.
+
+## Banco de dados
+
+### Escolha e justificativa
+
+Escolhemos trabalhar com o modelo relacional, principalmente pela consistência e integridade dos dados, características fundamentais para um controle preciso dos pedidos e dos pagamentos da lanchonete.
+
+Outra vantagem do modelo relacional é a sua maturidade: o modelo foi proposto em 1970 por Edgar F. Codd e desde então passou por diversas melhorias. Por estar há bastante tempo no mercado, é o modelo mais conhecido pelos profissionais de TI, sendo mais fácil encontrar mão de obra especializada para suporte e manutenção.
+
+O SGBD escolhido foi o Amazon Aurora (engine MySQL). Como a aplicação também está rodando na nuvem da AWS, vamos aproveitar a sinergia de usar um pacote de soluções do mesmo desenvolvedor. O Aurora possui desempenho suficiente para atender às necessidades do projeto, oferece escalabilidade sob demanda (cobrando apenas pelo que foi usado), alta disponibilidade, gerenciamento automático de instâncias, backups automáticos, cache de dados em memória RAM (InnoDB Buffer Pool) e diversas outras ferramentas que funcionam de forma transparente ao profissional de TI, diminuindo muito a carga de trabalho do administrador do banco de dados.
+
+### Documentação
+
+#### Modelo conceitual
+
+Utilizamos o Diagrama Entidade Relacionamento (DER) para representar o modelo conceitual do nosso banco de dados.
+
+Esse diagrama está mais próximo da visão do usuário do sistema e mais distante da implementação de fato (modelo físico).
+
+O diagrama abaixo foi feito utilizando o software brModelo.
+
+![Diagrama Entidade Relacionamento representando o Modelo Conceitual do banco de dados](./assets/modelo-conceitual.png)
+
+Alguns pontos a destacar nesse diagrama:
+
+- um pedido pode não ter um cliente (cliente não se identifica), por isso a cardinalidade mínima do lado cliente é zero;
+- nome e e-mail do cliente são atributos opcionais, mas, pelo menos, um deles precisa ser preenchido. O brModelo não tem uma funcionalidade específica para anotar esse tipo de situação: "os campos podem ser nulos, mas não ambos";
+- o brModelo também não tem a opção de linha dupla para as entidades com participação obrigatória no relacionamento, mas isso pode ser facilmente deduzido pela cardinalidade;
+- o timestamp do checkout poderia ser um atributo opcional, indicando, quando ausente, que o checkout não foi realizado. No nosso caso, como o pedido só é gravado no banco de dados quando o cliente faz o checkout, faz mais sentido deixá-lo como atributo obrigatório mesmo;
+- na entidade Pedido, o timestamp do status e o timestamp do checkout podem ser usados para acompanhar o tempo de espera do pedido. Poderíamos também ter feito uma entidade "Histórico do pedido" registrando o avanço do pedido em cada etapa. Tem várias formas de modelar uma solução, nós optamos pela forma mais simples dentre aquelas que atendem aos requisitos do projeto;
+- Categoria do produto, pagamento do pedido e status do pedido: os três poderiam ser atributos ou entidades. A definição do que é uma entidade e do que é um atributo varia muito segundo a visão de quem modela, mas observando que "o modelo conceitual deve ser estar próximo da visão do usuário", escolhi deixar apenas o status do pedido como atributo.
+
+#### Modelo lógico
+
+No modelo lógico utilizamos a notação de Chen, também conhecida como "notação pé de galinha".
+
+O diagrama abaixo foi criado com o MySQL BenchMark.
+
+As principais mudanças são:
+
+- a entidade Categoria do modelo anterior virou um campo do tipo "enum". Como temos poucas categorias, o enum permite ter um ganho de desempenho nas consultas e escritas do banco de dados, além de simplificar o esquema.
+- a entidade Pagamento foi incorporada pela entidade pedido. Como o relacionamento era 1 para 1, não faz sentido ter tabelas separadas.
+
+![Diagrama do Modelo Lógico do banco de dados](./assets/modelo-logico.png)
+
+Na tabela "itens_pedido" a chave primária é composta pelas chaves primárias de pedido e produto, por isso as chaves aparecem em vermelho.
+
+## Infra kubernetes
+
+A infra está rodando em um cluster ECS. Esse cluster roda apenas em subnets privadas e não tem um IP público atribuído, sendo acessado por um API Gateway.
+
+Os recursos foram criados mais ou menos nessa ordem, respeitando as dependências entre eles (cláusula depends_on):
+
+- os securities groups do cluster ECS e do load balancer;
+- as roles da task e da task execution;
+- as policies attachments (políticas associadas às roles);
+- o cluster ECS;
+- a task definition;
+- o load balancer;
+- o target group;
+- o listener;
+- o service do cluster;
+- o VPC link
+- o API Gateway;
+- o stage, a integration e a route do API Gateway.
+
+Todos os recursos foram definidos com o Terraform, que tenta importar os recursos da AWS para a VM do GitHub Actions (que é onde a pipeline roda) antes de executar o "plan" e o "apply". Então, se o recurso não existe, ele cria; se já existe, ele atualiza. Ao final da pipeline, ele imprime no console o link direto para a aplicação usando um output do terraform.
