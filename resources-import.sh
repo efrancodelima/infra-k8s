@@ -41,7 +41,7 @@ get_task_definition_arn() {
 }
 
 # Importa os securities groups
-SG_NAME_ECS="lanchonete-ecs-sg"
+SG_NAME_ECS="lanchonete-ecs-serv-sg"
 SG_NAME_LB="lanchonete-lb-sg"
 
 SG_ID_ECS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME_ECS}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
