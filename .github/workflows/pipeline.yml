@@ -8,9 +8,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    # environment: producao
-    # Comentei o environment porque ele não está disponível para repositórios privados na conta gratuita
-    # E o meu repositório só fica público após entregar o trabalho
+    environment: dev
 
     steps:
       - name: Checkout code
