@@ -46,6 +46,19 @@ variable "public_subnet_ids" {
   ]
 }
 
+# Cognito
+variable "user_pool_id" {
+  description = "O id do user pool do Cognito, usado na autorização do API Gateway"
+  type = string
+  default = "us-east-1_QFaugCzHu"
+}
+
+variable "client_id" {
+  description = "O client id do Cognito, usado na autorização do API Gateway"
+  type = string
+  default = "4j7fhutokfne6ad9mv5it0d4d7"
+}
+
 # Banco de dados
 variable "db_url" {
   description = "URL do banco de dados"
