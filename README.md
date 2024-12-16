@@ -24,6 +24,7 @@ Link do projeto no GitHub:
     - [Modelo conceitual](#modelo-conceitual)
     - [Modelo lógico](#modelo-lógico)
 - [Infra kubernetes](#infra-kubernetes)
+- [Função lambda](#função-lambda)
 
 ## Objetivos
 
