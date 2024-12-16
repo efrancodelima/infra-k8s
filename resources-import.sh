@@ -19,27 +19,6 @@ import_resource() {
   || echo "Erro ao importar o recurso, continuando..."
 }
 
-# Função para pegar o ARN da task definition
-get_task_definition_arn() {
-  local task_arn=$(aws ecs list-tasks \
-    --cluster "lanchonete-ecs-cluster" \
-    --query 'taskArns[0]' \
-    --output text  2>/dev/null)
-
-  if [ "$task_arn" == "None" ]; then
-    echo "None"
-    return
-  fi
-  
-  local task_def_arn=$(aws ecs describe-tasks \
-    --cluster "lanchonete-ecs-cluster" \
-    --tasks "$task_arn" \
-    --query 'tasks[0].taskDefinitionArn' \
-    --output text 2>/dev/null)
-  
-  echo "$task_def_arn"
-}
-
 # Importa os securities groups
 SG_NAME_ECS="lanchonete-ecs-serv-sg"
 SG_NAME_LB="lanchonete-lb-sg"
@@ -92,7 +71,8 @@ CLUSTER_NAME="lanchonete-ecs-cluster"
 import_resource "aws_ecs_cluster" "tf_ecs_cluster" "${CLUSTER_NAME}"
 
 # Importa a task definition
-TASK_DEF_ARN=$(get_task_definition_arn)
+TASK_DEF_NAME="lanchonete-task-definition"
+TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition ${TASK_DEF_NAME} --query 'taskDefinition.taskDefinitionArn' --output text 2>/dev/null)
 
 if [ "${TASK_DEF_ARN}" = "None" ]; then
     echo " "
@@ -139,7 +119,7 @@ fi
 
 # Importa o API gateway
 API_GATEWAY_NAME="lanchonete-api-gateway"
-API_GATEWAY_ID=$(aws apigatewayv2 get-apis --query "Items[?Name == '${API_GATEWAY_NAME}'] | [0].ApiId" --output text)
+API_GATEWAY_ID=$(aws apigatewayv2 get-apis --query "Items[?Name == '${API_GATEWAY_NAME}'] | [0].ApiId" --output text 2>/dev/null)
 
 if [ "${API_GATEWAY_ID}" = "None" ]; then
     echo " "
@@ -159,7 +139,7 @@ else
 fi
 
 # Importa a route do API gateway
-ROUTE_ID=$(aws apigatewayv2 get-routes --api-id ${API_GATEWAY_ID} --query "Items[0].RouteId" --output text)
+ROUTE_ID=$(aws apigatewayv2 get-routes --api-id ${API_GATEWAY_ID} --query "Items[0].RouteId" --output text 2>/dev/null)
 
 if [ "${API_GATEWAY_ID}" = "None" ] || [ "${ROUTE_ID}" = "None" ]; then
     echo " "
@@ -169,7 +149,7 @@ else
 fi
 
 # Importa a integration do API gateway
-INTEGRATION_ID=$(aws apigatewayv2 get-integrations --api-id ${API_GATEWAY_ID} --query "Items[0].IntegrationId" --output text)
+INTEGRATION_ID=$(aws apigatewayv2 get-integrations --api-id ${API_GATEWAY_ID} --query "Items[0].IntegrationId" --output text 2>/dev/null)
 
 if [ "${API_GATEWAY_ID}" = "None" ] || [ "${INTEGRATION_ID}" = "None" ]; then
     echo " "
@@ -180,7 +160,7 @@ fi
 
 # Importa a VPC link
 VPC_LINK_NAME="lanchonete-vpc-link"
-VPC_LINK_ID=$(aws apigatewayv2 get-vpc-links --query "Items[?Name == '${VPC_LINK_NAME}'] | [0].VpcLinkId" --output text)
+VPC_LINK_ID=$(aws apigatewayv2 get-vpc-links --query "Items[?Name == '${VPC_LINK_NAME}'] | [0].VpcLinkId" --output text 2>/dev/null)
 
 if [ "${VPC_LINK_ID}" = "None" ]; then
     echo " "

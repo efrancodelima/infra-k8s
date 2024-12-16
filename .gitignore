@@ -4,6 +4,7 @@ backup/
 terraform*
 tfplan
 
-x-run.sh
-y-destroy.sh
-z-describe.sh
+s1-run.sh
+s2-destroy.sh
+s3-describe.sh
+s4-recreate.sh
