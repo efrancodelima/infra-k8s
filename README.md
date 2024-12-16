@@ -195,7 +195,7 @@ Na tabela "itens_pedido" a chave primária é composta pelas chaves primárias d
 
 ## Infra kubernetes
 
-A infra está rodando em um cluster ECS. Esse cluster roda apenas em subnets privadas e não tem um IP público atribuído, sendo acessado por um API Gateway.
+A infra está rodando em um cluster ECS. Esse cluster roda apenas em subnets privadas e não tem um IP público atribuído, sendo acessado por um API Gateway (que exige autenticação).
 
 Os recursos foram criados mais ou menos nessa ordem, respeitando as dependências entre eles (cláusula depends_on):
 
