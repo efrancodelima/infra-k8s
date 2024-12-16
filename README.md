@@ -24,6 +24,7 @@ Link do projeto no GitHub:
     - [Modelo conceitual](#modelo-conceitual)
     - [Modelo lógico](#modelo-lógico)
 - [Infra kubernetes](#infra-kubernetes)
+- [Função lambda](#função-lambda)
 
 ## Objetivos
 
@@ -216,3 +217,12 @@ Os recursos foram criados mais ou menos nessa ordem, respeitando as dependência
   - a route do API Gateway.
 
 Todos os recursos foram definidos com o Terraform, que tenta importar os recursos da AWS para a VM do GitHub Actions (que é onde a pipeline roda) antes de executar o "plan" e o "apply". Então, se o recurso não existe, ele cria; se já existe, ele atualiza. Ao final da pipeline, ele imprime no console o link direto para a aplicação usando um output do terraform.
+
+## Função lambda
+
+Essa função é acionada durante o login do usuário e verifica se o CPF do usuário está cadastrado no banco de dados. Se estiver: ok, login realizado com sucesso; se não estiver é exibida uma mensagem informando o erro da falha no login.
+
+Cadastrei 2 usuários de exemplo no user pool, o primeiro é cliente cadastrado no banco de dados da lanchonete e o segundo, não:
+
+- Usuário: carlos | Senha: Teste@123
+- Usuário: helena | Senha: Teste@123
