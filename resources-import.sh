@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Importação de recusos iniciada."
+echo "Importação de recursos iniciada."
 
 # Função para importar os recursos passando os parâmetros necessários
 import_resource() {
@@ -81,9 +81,16 @@ else
     import_resource "aws_ecs_task_definition" "tf_ecs_task_definition" "${TASK_DEF_ARN}"
 fi
 
-# Importa o service
-SERVICE_NAME="lanchonete-ecs-service"
-import_resource "aws_ecs_service" "tf_ecs_service" "${CLUSTER_NAME}/${SERVICE_NAME}"
+# Importa o load balancer
+LB_NAME="lanchonete-load-balancer"
+LB_ARN=$(aws elbv2 describe-load-balancers --names ${LB_NAME} --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null)
+
+if [ -z "${LB_ARN}" ]; then
+    echo " "
+    echo "Load balancer não encontrado."
+else
+    import_resource "aws_lb" "tf_load_balancer" "${LB_ARN}"
+fi
 
 # Importa o target group
 TG_NAME="lanchonete-target-group"
@@ -96,17 +103,6 @@ else
     import_resource "aws_lb_target_group" "tf_lb_tg" ${TG_ARN}
 fi
 
-# Importa o load balancer
-LB_NAME="lanchonete-load-balancer"
-LB_ARN=$(aws elbv2 describe-load-balancers --names ${LB_NAME} --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null)
-
-if [ -z "${LB_ARN}" ]; then
-    echo " "
-    echo "Load balancer não encontrado."
-else
-    import_resource "aws_lb" "tf_load_balancer" "${LB_ARN}"
-fi
-
 # Importa o listener
 LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn ${LB_ARN} --query 'Listeners[0].ListenerArn' --output text 2>/dev/null)
 
@@ -115,6 +111,21 @@ if [ -z "${LISTENER_ARN}" ]; then
     echo "Listener não encontrado."
 else
     import_resource "aws_lb_listener" "tf_lb_listener" ${LISTENER_ARN}
+fi
+
+# Importa o service
+SERVICE_NAME="lanchonete-ecs-service"
+import_resource "aws_ecs_service" "tf_ecs_service" "${CLUSTER_NAME}/${SERVICE_NAME}"
+
+# Importa a VPC link
+VPC_LINK_NAME="lanchonete-vpc-link"
+VPC_LINK_ID=$(aws apigatewayv2 get-vpc-links --query "Items[?Name == '${VPC_LINK_NAME}'] | [0].VpcLinkId" --output text 2>/dev/null)
+
+if [ "${VPC_LINK_ID}" = "None" ]; then
+    echo " "
+    echo "VPC Link não encontrado."
+else
+    import_resource "aws_apigatewayv2_vpc_link" "tf_vpc_link" ${VPC_LINK_ID}
 fi
 
 # Importa o API gateway
@@ -138,16 +149,6 @@ else
     import_resource "aws_apigatewayv2_stage" "tf_api_stage" ${API_GATEWAY_ID}/${STAGE_NAME}
 fi
 
-# Importa a route do API gateway
-ROUTE_ID=$(aws apigatewayv2 get-routes --api-id ${API_GATEWAY_ID} --query "Items[0].RouteId" --output text 2>/dev/null)
-
-if [ "${API_GATEWAY_ID}" = "None" ] || [ "${ROUTE_ID}" = "None" ]; then
-    echo " "
-    echo "Route do API Gateway não encontrado."
-else
-    import_resource "aws_apigatewayv2_route" "tf_api_route" ${API_GATEWAY_ID}/${ROUTE_ID}
-fi
-
 # Importa a integration do API gateway
 INTEGRATION_ID=$(aws apigatewayv2 get-integrations --api-id ${API_GATEWAY_ID} --query "Items[0].IntegrationId" --output text 2>/dev/null)
 
@@ -158,15 +159,24 @@ else
     import_resource "aws_apigatewayv2_integration" "tf_api_integration" ${API_GATEWAY_ID}/${INTEGRATION_ID}
 fi
 
-# Importa a VPC link
-VPC_LINK_NAME="lanchonete-vpc-link"
-VPC_LINK_ID=$(aws apigatewayv2 get-vpc-links --query "Items[?Name == '${VPC_LINK_NAME}'] | [0].VpcLinkId" --output text 2>/dev/null)
+# Importa o Authorizer do API Gateway
+AUTHORIZER_ID=$(aws apigatewayv2 get-authorizers --api-id ${API_GATEWAY_ID} --query 'Items[0].AuthorizerId' --output text 2>/dev/null)
 
-if [ "${VPC_LINK_ID}" = "None" ]; then
+if [ "${API_GATEWAY_ID}" = "None" ] || [ "${AUTHORIZER_ID}" = "None" ]; then
     echo " "
-    echo "VPC Link não encontrado."
+    echo "Authorizer do API Gateway não encontrado."
 else
-    import_resource "aws_apigatewayv2_vpc_link" "tf_vpc_link" ${VPC_LINK_ID}
+    import_resource "aws_apigatewayv2_authorizer" "tf_api_authorizer" ${API_GATEWAY_ID}/${AUTHORIZER_ID}
+fi
+
+# Importa a route do API gateway
+ROUTE_ID=$(aws apigatewayv2 get-routes --api-id ${API_GATEWAY_ID} --query "Items[0].RouteId" --output text 2>/dev/null)
+
+if [ "${API_GATEWAY_ID}" = "None" ] || [ "${ROUTE_ID}" = "None" ]; then
+    echo " "
+    echo "Route do API Gateway não encontrado."
+else
+    import_resource "aws_apigatewayv2_route" "tf_api_route" ${API_GATEWAY_ID}/${ROUTE_ID}
 fi
 
 echo "Importação de recursos finalizada!"
