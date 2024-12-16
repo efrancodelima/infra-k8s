@@ -215,4 +215,6 @@ Os recursos foram criados mais ou menos nessa ordem, respeitando as dependência
   - o authorizer do API Gateway;
   - a route do API Gateway.
 
-Todos os recursos foram definidos com o Terraform, que tenta importar os recursos da AWS para a VM do GitHub Actions (que é onde a pipeline roda) antes de executar o "plan" e o "apply". Então, se o recurso não existe, ele cria; se já existe, ele atualiza. Ao final da pipeline, ele imprime no console o link direto para a aplicação usando um output do terraform.
+Todos os recursos foram definidos com o Terraform, que tenta importar os recursos da AWS para a VM do GitHub Actions (que é onde a pipeline roda) antes de executar o "plan" e o "apply". Então, se o recurso não existe, ele cria; se já existe, ele atualiza.
+
+Ao final da pipeline, ele imprime no console (do Action) o link para o API Gateway usando um output do terraform. Mas reforçando: o API Gateway exige autenticação, então esse link não estará acessível diretamente.
