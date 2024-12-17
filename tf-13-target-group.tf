@@ -2,7 +2,7 @@ resource "aws_lb_target_group" "tf_lb_tg" {
   name        = "lanchonete-target-group"
   protocol    = "HTTP"
   port        = 8080
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.tf_vpc.id
   target_type = "ip"
 
   health_check {

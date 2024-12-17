@@ -1,6 +1,6 @@
 resource "aws_security_group" "tf_ecs_sg" {
   name   = "lanchonete-ecs-serv-sg"
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.tf_vpc.id
 
   ingress {
     from_port   = 8080
