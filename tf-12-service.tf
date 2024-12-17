@@ -15,7 +15,10 @@ resource "aws_ecs_service" "tf_ecs_service" {
   health_check_grace_period_seconds  = 0
 
   network_configuration {
-    subnets = var.private_subnet_ids
+    subnets = [
+      data.aws_subnet.tf_sub_priv_1.id,
+      data.aws_subnet.tf_sub_priv_2.id
+    ]
     security_groups = [ aws_security_group.tf_ecs_sg.id ]
     assign_public_ip = false
   }
